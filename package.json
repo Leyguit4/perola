@@ -1,4 +1,10 @@
 {
   "name": "perola-forms",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
 }
