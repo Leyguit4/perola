@@ -1,8 +1,9 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "http://sparkedhost.us:25884/$1"
-    }
+    { "source": "/api/user/:userId", "destination": "/api/user/[userId]" },
+    { "source": "/perola/form/midia/:userId", "destination": "/index.html" },
+    { "source": "/perola/form/midia", "destination": "/index.html" },
+    { "source": "/perola/form", "destination": "/index.html" },
+    { "source": "/perola", "destination": "/index.html" }
   ]
 }
