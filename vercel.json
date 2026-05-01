@@ -1,9 +1,11 @@
 {
-  "rewrites": [
-    { "source": "/api/user/:userId", "destination": "/api/user/[userId]" },
-    { "source": "/perola/form/midia/:userId", "destination": "/index.html" },
-    { "source": "/perola/form/midia", "destination": "/index.html" },
-    { "source": "/perola/form", "destination": "/index.html" },
-    { "source": "/perola", "destination": "/index.html" }
+  "routes": [
+    { "src": "/api/user/(?<userId>[^/]+)", "dest": "/api/user/[userId].js" },
+    { "src": "/api/submit", "dest": "/api/submit.js" },
+    { "src": "/perola/form/midia/(?<userId>\\d+)", "dest": "/index.html" },
+    { "src": "/perola/form/midia", "dest": "/index.html" },
+    { "src": "/perola/form", "dest": "/index.html" },
+    { "src": "/perola", "dest": "/index.html" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
