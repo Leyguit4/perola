@@ -1,4 +1,8 @@
 {
+  "functions": {
+    "api/submit.js": { "runtime": "nodejs22.x" },
+    "api/user/[userId].js": { "runtime": "nodejs22.x" }
+  },
   "rewrites": [
     { "source": "/perola/form/midia/:userId", "destination": "/index.html" },
     { "source": "/perola/form/midia", "destination": "/index.html" },
