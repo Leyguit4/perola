@@ -1,15 +1,17 @@
 const GUILD_ID = "594296025561169926";
 
+// Emojis por pergunta — mesma ordem do midiaforms.js
 const EMOJIS = [
-  "<:useravatar:1499273677491929088>",
-  "<:info:1287136395470704692>",
-  "<:calendar:1253453437295788163>",
-  "<:cloudyday:1499275411853545493>",
-  "<:thumbtack:1253523157227147329>",
-  "<:useravatar1:1499277321927131146>",
-  "<:Question:1337301791150313484>",
+  "<:useravatar:1499273677491929088>",   // 0 - Conte mais sobre você?
+  "<:info:1287136395470704692>",          // 1 - Sua idade?
+  "<:calendar:1253453437295788163>",      // 2 - Dias que geralmente tem disponibilidade?
+  "<:cloudyday:1499275411853545493>",     // 3 - Qual é a sua disponibilidade?
+  "<:thumbtack:1253523157227147329>",     // 4 - Qual setor deseja ingressar?
+  "<:useravatar1:1499277321927131146>",   // 5 - Tem alguma experiência nessa(s) área?
+  "<:Question:1337301791150313484>",      // 6 - Porque deseja entrar na equipe...
 ];
 
+// Perguntas — mesma ordem exata do PERGUNTAS[] no midiaforms.js
 const PERGUNTAS = [
   "Conte mais sobre você?",
   "Sua idade?",
@@ -20,14 +22,6 @@ const PERGUNTAS = [
   "Porque deseja entrar na equipe e qual o intuito com isso?",
 ];
 
-const EMBED_FIELD_LIMIT = 1024;
-
-function truncate(text, limit) {
-  if (!text) return "Não respondido";
-  if (text.length <= limit) return text;
-  return `${text.slice(0, limit - 1)}…`;
-}
-
 async function getAvatarUrl(userId, botToken) {
   try {
     const memberRes = await fetch(
@@ -36,8 +30,10 @@ async function getAvatarUrl(userId, botToken) {
     );
     if (memberRes.ok) {
       const member = await memberRes.json();
-      if (member.avatar) return `https://cdn.discordapp.com/guilds/${GUILD_ID}/users/${userId}/avatars/${member.avatar}.png?size=256`;
-      if (member.user?.avatar) return `https://cdn.discordapp.com/avatars/${userId}/${member.user.avatar}.png?size=256`;
+      if (member.avatar)
+        return `https://cdn.discordapp.com/guilds/${GUILD_ID}/users/${userId}/avatars/${member.avatar}.png?size=256`;
+      if (member.user?.avatar)
+        return `https://cdn.discordapp.com/avatars/${userId}/${member.user.avatar}.png?size=256`;
     }
     const userRes = await fetch(
       `https://discord.com/api/v10/users/${userId}`,
@@ -45,35 +41,56 @@ async function getAvatarUrl(userId, botToken) {
     );
     if (userRes.ok) {
       const user = await userRes.json();
-      if (user.avatar) return `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.png?size=256`;
+      if (user.avatar)
+        return `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.png?size=256`;
     }
   } catch (_) {}
   return "https://cdn.discordapp.com/embed/avatars/0.png";
 }
 
-function buildDiscordPayload(userId, respostas, avatarUrl) {
-  const fields = PERGUNTAS
+// Monta o payload com ComponentsV2 — idêntico ao createResponseContainer do midiaforms.js
+function buildComponentsV2Payload(userId, respostas, avatarUrl) {
+  // Monta as linhas, pulando experiência (índice 5) se em branco
+  const linhas = PERGUNTAS
     .map((pergunta, index) => {
-      if (index === 5 && (!respostas[index] || respostas[index].trim() === "")) return null;
-      return {
-        name: `${EMOJIS[index]} ${pergunta}`,
-        value: truncate((respostas[index] || "Não respondido").trim(), EMBED_FIELD_LIMIT),
-      };
+      if (index === 5 && (!respostas[index] || respostas[index].trim() === "")) {
+        return null;
+      }
+      return `${EMOJIS[index]} **${pergunta}**\n- ${respostas[index] || "Não respondido"}`;
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .join("\n\n");
+
+  const content =
+    `## <:Form:1337301708568526869> Formulário de <@${userId}>\n\n` +
+    linhas +
+    `\n\n<:usercopy:1278003096873861271> **ID do Membro:**\n\`\`\`${userId}\`\`\``;
 
   return {
-    content: `## <:Form:1337301708568526869> Formulário de <@${userId}>`,
-    embeds: [
+    // flags: 1 << 15 = IS_COMPONENTS_V2 (32768)
+    flags: 32768,
+    components: [
       {
-        color: 0x7c5cff,
-        thumbnail: { url: avatarUrl || "https://cdn.discordapp.com/embed/avatars/0.png" },
-        fields,
-        footer: { text: `ID do membro: ${userId}` },
-        timestamp: new Date().toISOString(),
+        type: 17, // Container
+        components: [
+          {
+            type: 9, // Section
+            components: [
+              {
+                type: 10, // TextDisplay
+                content: content,
+              },
+            ],
+            accessory: {
+              type: 11, // Thumbnail
+              media: {
+                url: avatarUrl || "https://cdn.discordapp.com/embed/avatars/0.png",
+              },
+            },
+          },
+        ],
       },
     ],
-    allowed_mentions: { users: [userId] },
   };
 }
 
@@ -83,16 +100,20 @@ module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ success: false, error: "Método não permitido" });
+  if (req.method !== "POST")
+    return res.status(405).json({ success: false, error: "Método não permitido" });
 
   const botToken = process.env.BOT_TOKEN;
-  if (!botToken) return res.status(500).json({ success: false, error: "BOT_TOKEN não configurado no Vercel" });
+  if (!botToken)
+    return res.status(500).json({ success: false, error: "BOT_TOKEN não configurado no Vercel" });
 
   const channelId = process.env.RESPONSE_CHANNEL_ID;
-  if (!channelId) return res.status(500).json({ success: false, error: "RESPONSE_CHANNEL_ID não configurado no Vercel" });
+  if (!channelId)
+    return res.status(500).json({ success: false, error: "RESPONSE_CHANNEL_ID não configurado no Vercel" });
 
   const { userId, respostas } = req.body || {};
-  if (!userId || !respostas) return res.status(400).json({ success: false, error: "Dados incompletos" });
+  if (!userId || !respostas)
+    return res.status(400).json({ success: false, error: "Dados incompletos" });
 
   const respostasArray = [
     respostas.resposta1 || "",
@@ -105,17 +126,21 @@ module.exports = async function handler(req, res) {
   ];
 
   const avatarUrl = await getAvatarUrl(userId, botToken);
-  const payload = buildDiscordPayload(userId, respostasArray, avatarUrl);
+  const payload = buildComponentsV2Payload(userId, respostasArray, avatarUrl);
 
   try {
     const discordRes = await fetch(
       `https://discord.com/api/v10/channels/${channelId}/messages`,
       {
         method: "POST",
-        headers: { Authorization: `Bot ${botToken}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bot ${botToken}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       }
     );
+
     if (!discordRes.ok) {
       const errText = await discordRes.text();
       console.error("Discord API error:", discordRes.status, errText);
@@ -125,6 +150,7 @@ module.exports = async function handler(req, res) {
         discordError: errText,
       });
     }
+
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error("Erro interno:", err);
