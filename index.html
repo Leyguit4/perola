@@ -562,7 +562,7 @@
     const previewContent = document.getElementById('previewContent');
     const formModal = document.getElementById('formModal');
 
-    // Pega o userId do path: /perola/form/midia/123456789
+    // Pega o userId do path: /form/midia/123456789
     const pathParts = window.location.pathname.split('/');
     const lastPart = pathParts[pathParts.length - 1];
     const USER_ID = /^\d+$/.test(lastPart)
