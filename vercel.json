@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "http://sparkedhost.us:25884/$1"
+    }
+  ]
+}
