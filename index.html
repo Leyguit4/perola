@@ -1,131 +1,698 @@
-// api/submit.js — Vercel Serverless Function (CommonJS)
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulário de Mídia</title>
+  <link rel="icon" type="image/png" href="/Midia.png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-const GUILD_ID = "594296025561169926";
-
-const EMOJIS = [
-  "<:useravatar:1499273677491929088>",
-  "<:info:1287136395470704692>",
-  "<:calendar:1253453437295788163>",
-  "<:cloudyday:1499275411853545493>",
-  "<:thumbtack:1253523157227147329>",
-  "<:useravatar1:1499277321927131146>",
-  "<:Question:1337301791150313484>",
-];
-
-const PERGUNTAS = [
-  "Conte mais sobre você?",
-  "Sua idade?",
-  "Dias que geralmente tem disponibilidade?",
-  "Qual é a sua disponibilidade?",
-  "Qual setor deseja ingressar?",
-  "Tem alguma experiência nessa(s) área?",
-  "Porque deseja entrar na equipe e qual o intuito com isso?",
-];
-
-async function getAvatarUrl(userId, botToken) {
-  try {
-    const memberRes = await fetch(
-      `https://discord.com/api/v10/guilds/${GUILD_ID}/members/${userId}`,
-      { headers: { Authorization: `Bot ${botToken}` } }
-    );
-    if (memberRes.ok) {
-      const member = await memberRes.json();
-      if (member.avatar) return `https://cdn.discordapp.com/guilds/${GUILD_ID}/users/${userId}/avatars/${member.avatar}.png?size=256`;
-      if (member.user?.avatar) return `https://cdn.discordapp.com/avatars/${userId}/${member.user.avatar}.png?size=256`;
+    body {
+      font-family: "gg sans", "Whitney", "Noto Sans", "Helvetica Neue", sans-serif;
+      background-color: #313338;
+      color: #f2f3f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-    const userRes = await fetch(
-      `https://discord.com/api/v10/users/${userId}`,
-      { headers: { Authorization: `Bot ${botToken}` } }
-    );
-    if (userRes.ok) {
-      const user = await userRes.json();
-      if (user.avatar) return `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.png?size=256`;
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 1;
     }
-  } catch (_) {}
-  return "https://cdn.discordapp.com/embed/avatars/0.png";
-}
 
-function buildDiscordPayload(userId, respostas, avatarUrl) {
-  const linhas = PERGUNTAS
-    .map((pergunta, index) => {
-      if (index === 5 && (!respostas[index] || respostas[index].trim() === "")) return null;
-      return `${EMOJIS[index]} **${pergunta}**\n- ${respostas[index] || "Não respondido"}`;
-    })
-    .filter(Boolean)
-    .join("\n\n");
+    .modal-container {
+      position: relative;
+      z-index: 2;
+      background-color: #313338;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.24);
+    }
 
-  const content =
-    `## <:Form:1337301708568526869> Formulário de <@${userId}>\n\n` +
-    linhas +
-    `\n\n<:usercopy:1278003096873861271> **ID do Membro:**\n\`\`\`${userId}\`\`\``;
+    .modal-header {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #3f4147;
+    }
 
-  return {
-    flags: 1 << 15,
-    components: [
-      {
-        type: 17,
-        components: [
-          {
-            type: 25,
-            components: [{ type: 10, content }],
-            accessory: {
-              type: 11,
-              media: { url: avatarUrl || "https://cdn.discordapp.com/embed/avatars/0.png" }
-            }
+    .modal-icon { width: 32px; height: 32px; font-size: 24px; display: flex; align-items: center; }
+    .modal-title { font-size: 20px; font-weight: 600; color: #f2f3f5; }
+
+    .modal-close {
+      margin-left: auto;
+      background: none; border: none;
+      color: #b5bac1; font-size: 24px;
+      cursor: pointer; padding: 4px; line-height: 1;
+      transition: color 0.15s;
+    }
+    .modal-close:hover { color: #f2f3f5; }
+
+    .alert-box {
+      margin: 16px;
+      padding: 12px;
+      background-color: rgba(255,225,0,0.08);
+      border-left: 4px solid #FFE100;
+      border-radius: 4px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .alert-icon { color: #FFE100; font-size: 18px; flex-shrink: 0; }
+    .alert-text { font-size: 13px; color: #b5bac1; line-height: 1.4; }
+    .alert-highlight { color: #FFE100; font-weight: 600; }
+
+    .modal-body { padding: 0 16px 16px; }
+    .form-group { margin-bottom: 16px; }
+
+    .form-label {
+      display: block;
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase;
+      color: #b5bac1; margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+    .form-label .required { color: #ed4245; margin-left: 2px; }
+
+    .form-input {
+      width: 100%;
+      background-color: #1e1f22; border: none; border-radius: 4px;
+      color: #f2f3f5; padding: 10px 12px; font-size: 14px;
+      font-family: inherit; resize: vertical; min-height: 80px;
+      transition: box-shadow 0.15s;
+    }
+    .form-input:focus { outline: none; box-shadow: 0 0 0 2px #FFE100; }
+    .form-input::placeholder { color: #6d6f78; }
+
+    .modal-footer {
+      padding: 16px; background-color: #2b2d31;
+      border-radius: 0 0 8px 8px;
+      display: flex; justify-content: flex-end; gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 24px; border-radius: 4px;
+      font-size: 14px; font-weight: 500;
+      cursor: pointer; border: none; font-family: inherit;
+      transition: background-color 0.17s, opacity 0.17s;
+    }
+    .btn-cancel { background-color: transparent; color: #f2f3f5; }
+    .btn-cancel:hover { text-decoration: underline; }
+    .btn-submit { background-color: #FFE100; color: #1e1f22; font-weight: 700; }
+    .btn-submit:hover { background-color: #e6cc00; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .loading-spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.2); border-top-color: #1e1f22;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .confirm-overlay {
+      display: none; position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9); z-index: 10;
+      align-items: center; justify-content: center;
+    }
+    .confirm-overlay.active { display: flex; }
+
+    .confirm-modal {
+      background-color: #313338; border-radius: 8px;
+      width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.24);
+    }
+    .confirm-header { padding: 16px; border-bottom: 1px solid #3f4147; }
+    .confirm-title { font-size: 18px; font-weight: 600; color: #f2f3f5; }
+    .confirm-body { padding: 16px; max-height: 400px; overflow-y: auto; }
+
+    .preview-item {
+      margin-bottom: 16px; padding: 12px;
+      background-color: #2b2d31; border-radius: 4px;
+    }
+    .preview-question { font-size: 12px; font-weight: 700; color: #FFE100; margin-bottom: 6px; }
+    .preview-answer { font-size: 14px; color: #dbdee1; white-space: pre-wrap; }
+
+    .confirm-footer {
+      padding: 16px; background-color: #2b2d31;
+      display: flex; justify-content: flex-end; gap: 12px;
+    }
+
+    .success-overlay {
+      display: none; position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #1e1f22; z-index: 20;
+      align-items: center; justify-content: center; flex-direction: column;
+    }
+    .success-overlay.active { display: flex; animation: fadeIn 0.5s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .success-animation {
+      position: relative; width: 160px; height: 160px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+
+    .shadow-yellow {
+      position: absolute; width: 120px; height: 120px; border-radius: 50%;
+      background: radial-gradient(circle, #FFE500 0%, transparent 68%);
+      filter: blur(28px); opacity: 0.50;
+      animation: orbit-y 20s cubic-bezier(0.45,0.05,0.55,0.95) infinite, pulse-y 18s ease-in-out infinite;
+    }
+    .shadow-black {
+      position: absolute; width: 105px; height: 105px; border-radius: 50%;
+      background: radial-gradient(circle, #000000 0%, transparent 68%);
+      filter: blur(32px); opacity: 0.60;
+      animation: orbit-b 26s cubic-bezier(0.45,0.05,0.55,0.95) infinite, pulse-b 22s ease-in-out infinite;
+    }
+    .shadow-white {
+      position: absolute; width: 90px; height: 90px; border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, transparent 65%);
+      filter: blur(22px); opacity: 0.22;
+      animation: orbit-w 23s cubic-bezier(0.45,0.05,0.55,0.95) infinite, pulse-w 19s ease-in-out infinite;
+    }
+
+    @keyframes orbit-y {
+      0%   { transform: translate(  0px,-30px) scale(1.00); opacity:.50; }
+      25%  { transform: translate( 30px,  0px) scale(1.08); opacity:.62; }
+      50%  { transform: translate(  0px, 30px) scale(0.96); opacity:.46; }
+      75%  { transform: translate(-30px,  0px) scale(0.97); opacity:.54; }
+      100% { transform: translate(  0px,-30px) scale(1.00); opacity:.50; }
+    }
+    @keyframes orbit-b {
+      0%   { transform: translate( 28px, 12px) scale(1.00); opacity:.58; }
+      25%  { transform: translate(-10px, 30px) scale(0.93); opacity:.44; }
+      50%  { transform: translate(-28px,-14px) scale(1.02); opacity:.60; }
+      75%  { transform: translate( 10px,-30px) scale(1.04); opacity:.62; }
+      100% { transform: translate( 28px, 12px) scale(1.00); opacity:.58; }
+    }
+    @keyframes orbit-w {
+      0%   { transform: translate(-24px,-16px) scale(1.00); opacity:.22; }
+      25%  { transform: translate(-16px, 26px) scale(1.10); opacity:.30; }
+      50%  { transform: translate( 24px, 16px) scale(0.97); opacity:.20; }
+      75%  { transform: translate( 16px,-28px) scale(0.96); opacity:.18; }
+      100% { transform: translate(-24px,-16px) scale(1.00); opacity:.22; }
+    }
+    @keyframes pulse-y { 0%,100%{filter:blur(28px);}50%{filter:blur(42px);} }
+    @keyframes pulse-b { 0%,100%{filter:blur(32px);}50%{filter:blur(50px);} }
+    @keyframes pulse-w { 0%,100%{filter:blur(22px);}50%{filter:blur(36px);} }
+
+    .success-icon-wrap {
+      position: relative; z-index: 2;
+      animation: icon-appear 0.6s ease 0.2s both, float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) infinite;
+    }
+    @keyframes icon-appear { from{transform:scale(0);opacity:0;} to{transform:scale(1);opacity:1;} }
+    @keyframes float-circle {
+      0%  {transform:translate(0px,-6px) rotate(0deg);}
+      25% {transform:translate(6px,0px) rotate(0.6deg);}
+      50% {transform:translate(0px,6px) rotate(0deg);}
+      75% {transform:translate(-6px,0px) rotate(-0.6deg);}
+      100%{transform:translate(0px,-6px) rotate(0deg);}
+    }
+
+    .success-circle {
+      width: 96px; height: 96px; border-radius: 50%;
+      background-color: #FFE500;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 14px 3px rgba(255,229,0,0.28), 0 4px 20px rgba(0,0,0,0.50);
+      animation: glow-breathe 14s ease-in-out infinite;
+    }
+    @keyframes glow-breathe {
+      0%,100%{box-shadow:0 0 14px 3px rgba(255,229,0,0.22),0 4px 20px rgba(0,0,0,0.50);}
+      50%{box-shadow:0 0 36px 12px rgba(255,229,0,0.52),0 8px 32px rgba(0,0,0,0.65);}
+    }
+
+    .success-check-svg { width: 46px; height: 46px; }
+    .check-path {
+      stroke: #1e1f22; stroke-width: 3.4;
+      stroke-linecap: round; stroke-linejoin: round; fill: none;
+      stroke-dasharray: 50; stroke-dashoffset: 50;
+      animation: draw-check 0.65s ease-out 0.4s forwards, check-pulse 14s ease-in-out 1.1s infinite;
+    }
+    @keyframes draw-check { to{stroke-dashoffset:0;} }
+    @keyframes check-pulse {
+      0%,100%{stroke-width:3.4;opacity:1.00;}
+      50%{stroke-width:3.9;opacity:0.80;}
+    }
+
+    .particle {
+      position: absolute; width: 10px; height: 10px; border-radius: 50%;
+      animation: particle-explode 1s ease-out forwards;
+    }
+    @keyframes particle-explode {
+      0%{transform:translate(0,0) scale(1);opacity:1;}
+      100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0;}
+    }
+
+    .success-text {
+      margin-top: 14px; font-size: 24px; font-weight: 600; color: #FFE100;
+      animation: text-appear 0.5s ease 0.5s both, float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) 0.5s infinite;
+    }
+    .success-subtext {
+      margin-top: 10px; font-size: 14px; color: #b5bac1;
+      animation: text-appear 0.5s ease 0.7s both, float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) 0.7s infinite;
+    }
+    .success-close-hint {
+      margin-top: 20px; font-size: 12px; color: #6d6f78;
+      animation: text-appear 0.5s ease 0.9s both, float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) 0.9s infinite;
+    }
+    @keyframes text-appear { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #2b2d31; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #1e1f22; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3f4147; }
+
+    .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; background-color: #2b2d31;
+      border-radius: 4px; cursor: pointer;
+      transition: background-color 0.15s; user-select: none;
+    }
+    .checkbox-item:hover { background-color: #32353b; }
+    .checkbox-item input[type="checkbox"] { display: none; }
+    .checkbox-box {
+      width: 20px; height: 20px; border-radius: 4px;
+      border: 2px solid #4e5058; background-color: #1e1f22;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background-color 0.15s, border-color 0.15s;
+    }
+    .checkbox-item input[type="checkbox"]:checked + .checkbox-box {
+      background-color: #FFE100; border-color: #FFE100;
+    }
+    .checkbox-item input[type="checkbox"]:checked + .checkbox-box::after {
+      content: ''; display: block;
+      width: 5px; height: 9px;
+      border: 2px solid #1e1f22; border-top: none; border-left: none;
+      transform: rotate(45deg) translateY(-1px);
+    }
+    .checkbox-label-text { font-size: 14px; color: #dbdee1; }
+
+    .optional-badge {
+      display: inline-block; font-size: 10px; font-weight: 600;
+      background-color: #2b2d31; color: #6d6f78;
+      border: 1px solid #3f4147; border-radius: 3px;
+      padding: 1px 5px; margin-left: 6px;
+      text-transform: uppercase; letter-spacing: 0.03em; vertical-align: middle;
+    }
+    .optional-hint { font-size: 11px; color: #6d6f78; margin-top: 5px; margin-bottom: 8px; font-style: italic; }
+
+    .age-input-wrap { position: relative; }
+    .age-input {
+      width: 100%; background-color: #1e1f22; border: none; border-radius: 4px;
+      color: #f2f3f5; padding: 10px 12px; font-size: 14px; font-family: inherit;
+      transition: box-shadow 0.15s; -moz-appearance: textfield;
+    }
+    .age-input::-webkit-outer-spin-button,
+    .age-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .age-input:focus { outline: none; box-shadow: 0 0 0 2px #FFE100; }
+    .age-input.age-error { box-shadow: 0 0 0 2px #ed4245; }
+    .age-error-msg {
+      display: none; margin-top: 6px; font-size: 12px; font-weight: 600;
+      color: #ed4245; background-color: rgba(237,66,69,0.10);
+      border-left: 3px solid #ed4245; border-radius: 3px; padding: 6px 10px;
+    }
+    .age-error-msg.visible { display: block; }
+
+    .sector-tooltip {
+      margin-top: 6px; margin-bottom: 4px; padding: 8px 11px;
+      background-color: rgba(255,225,0,0.06); border-left: 3px solid #FFE100;
+      border-radius: 3px; font-size: 12px; color: #9ea3ac; line-height: 1.45; display: none;
+    }
+    .sector-tooltip.visible { display: block; }
+    .sector-tooltip strong { color: #FFE100; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+
+  <div class="modal-container" id="formModal">
+    <div class="modal-header">
+      <div class="modal-icon"><img src="/Perola.png" alt="Pérola" style="width:32px;height:32px;object-fit:contain;"></div>
+      <h1 class="modal-title">Formulário de Mídia</h1>
+      <button class="modal-close" onclick="window.close()" title="Fechar">&times;</button>
+    </div>
+
+    <div class="alert-box">
+      <span class="alert-icon">⚠️</span>
+      <p class="alert-text">
+        Este formulário será enviado para a <span class="alert-highlight">Equipe de Mídia</span>.
+        Não compartilhe sua senha ou outras informações confidenciais.
+      </p>
+    </div>
+
+    <form id="midiaForm" class="modal-body">
+
+      <div class="form-group">
+        <label class="form-label">Conte mais sobre você? <span class="required">*</span></label>
+        <textarea class="form-input" name="resposta1" placeholder="Sua resposta..." required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="idadeInput">Informe sua idade <span class="required">*</span></label>
+        <div class="age-input-wrap">
+          <input type="number" id="idadeInput" name="idade" class="age-input"
+            placeholder="Ex: 20" min="1" max="99" inputmode="numeric">
+          <div class="age-error-msg" id="ageErrorMsg">⚠️ Você precisa ter pelo menos 15 anos para se candidatar.</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Quais os dias que você geralmente tem disponibilidade? <span class="required">*</span></label>
+        <div class="checkbox-group">
+          <label class="checkbox-item">
+            <input type="checkbox" name="dias" value="Dia de Semana">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label-text">📅 Dia de Semana</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="dias" value="Final de Semana">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label-text">🎉 Final de Semana</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Qual é sua disponibilidade? <span class="required">*</span></label>
+        <div class="checkbox-group">
+          <label class="checkbox-item">
+            <input type="checkbox" name="disponibilidade" value="Manhã">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label-text">☀️ Manhã</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="disponibilidade" value="Tarde">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label-text">🌤️ Tarde</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="disponibilidade" value="Noite">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label-text">🌙 Noite</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Qual setor você deseja ingressar? <span class="required">*</span></label>
+        <div class="checkbox-group">
+          <label class="checkbox-item" onclick="toggleTooltip('tooltipDesign')">
+            <input type="checkbox" name="setor" value="Design">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label-text">🎨 Design</span>
+          </label>
+          <div class="sector-tooltip" id="tooltipDesign">
+            <strong>🎨 Design</strong> — Os artistas da equipe! São eles que dão aquele toque visual único aos nossos projetos, criando artes, banners e vídeos que deixam tudo mais belo e chamativo.
+          </div>
+          <label class="checkbox-item" onclick="toggleTooltip('tooltipEntretenimento')">
+            <input type="checkbox" name="setor" value="Entretenimento">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label-text">🎬 Entretenimento</span>
+          </label>
+          <div class="sector-tooltip" id="tooltipEntretenimento">
+            <strong>🎬 Entretenimento</strong> — Gosta de realizar eventos? Então aqui é o seu lugar! Este time incrível é responsável por criar, organizar e dar vida aos eventos mais divertidos da nossa comunidade!
+          </div>
+          <label class="checkbox-item" onclick="toggleTooltip('tooltipDivulgacao')">
+            <input type="checkbox" name="setor" value="Divulgação">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label-text">📢 Divulgação</span>
+          </label>
+          <div class="sector-tooltip" id="tooltipDivulgacao">
+            <strong>📢 Divulgação</strong> — A voz da comunidade! Esse setor organiza e idealiza estratégias para levar nossa comunidade cada vez mais longe! São eles que mantêm todos informados sobre novidades, eventos e projetos, garantindo que ninguém perca nenhum detalhe importante.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          Tem alguma experiência nessa área? Conte-nos!
+          <span class="optional-badge">Opcional</span>
+        </label>
+        <p class="optional-hint">Este campo é completamente opcional — deixe em branco se preferir.</p>
+        <textarea class="form-input" name="resposta4" placeholder="Descreva sua experiência, se houver..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Porque deseja entrar na equipe e qual o seu intuito com isso? <span class="required">*</span></label>
+        <textarea class="form-input" name="resposta5" placeholder="Sua resposta..." required></textarea>
+      </div>
+
+    </form>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" onclick="window.close()">Cancelar</button>
+      <button type="button" class="btn btn-submit" id="submitBtn" onclick="showConfirmation()">Enviar</button>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-modal">
+      <div class="confirm-header">
+        <h2 class="confirm-title"><img src="/Form.png" alt="" style="width:22px;height:22px;vertical-align:middle;margin-right:8px;object-fit:contain;">Confirmar Envio</h2>
+      </div>
+      <div class="confirm-body" id="previewContent"></div>
+      <div class="confirm-footer">
+        <button type="button" class="btn btn-cancel" onclick="hideConfirmation()">Editar</button>
+        <button type="button" class="btn btn-submit" id="confirmBtn" onclick="submitForm()">Confirmar Envio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tela de Sucesso -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-animation" id="successAnimation">
+      <div class="shadow-yellow"></div>
+      <div class="shadow-black"></div>
+      <div class="shadow-white"></div>
+      <div class="success-icon-wrap">
+        <div class="success-circle">
+          <svg class="success-check-svg" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+            <path class="check-path" d="M10 23.5 L19.5 33 L36 13"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <p class="success-text">Formulário Enviado!</p>
+    <p class="success-subtext">Aguarde o contato da Equipe de Mídia.</p>
+    <p class="success-close-hint">Você pode fechar esta página.</p>
+  </div>
+
+  <script>
+    const form = document.getElementById('midiaForm');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const confirmOverlay = document.getElementById('confirmOverlay');
+    const successOverlay = document.getElementById('successOverlay');
+    const previewContent = document.getElementById('previewContent');
+    const formModal = document.getElementById('formModal');
+
+    // Pega o userId do path: /perola/form/midia/123456789
+    const pathParts = window.location.pathname.split('/');
+    const USER_ID = pathParts[pathParts.length - 1].match(/^\d+$/)
+      ? pathParts[pathParts.length - 1]
+      : (new URLSearchParams(window.location.search).get('uid') || '');
+
+    let USER_AVATAR = null;
+    let USER_NAME = USER_ID;
+
+    if (USER_ID) {
+      fetch('/api/user/' + USER_ID)
+        .then(r => r.json())
+        .then(info => {
+          if (info.found) {
+            USER_AVATAR = info.avatarUrl || null;
+            USER_NAME = info.username || USER_ID;
           }
-        ]
-      }
-    ]
-  };
-}
-
-module.exports = async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ success: false, error: "Método não permitido" });
-
-  const botToken = process.env.BOT_TOKEN;
-  if (!botToken) return res.status(500).json({ success: false, error: "BOT_TOKEN não configurado no Vercel" });
-
-  const channelId = process.env.RESPONSE_CHANNEL_ID;
-  if (!channelId) return res.status(500).json({ success: false, error: "RESPONSE_CHANNEL_ID não configurado no Vercel" });
-
-  const { userId, respostas } = req.body || {};
-  if (!userId || !respostas) return res.status(400).json({ success: false, error: "Dados incompletos" });
-
-  const respostasArray = [
-    respostas.resposta1 || "",
-    respostas.resposta2 || "",
-    respostas.resposta3 || "",
-    respostas.resposta4 || "",
-    respostas.resposta5 || "",
-    respostas.resposta6 || "",
-    respostas.resposta7 || "",
-  ];
-
-  const avatarUrl = await getAvatarUrl(userId, botToken);
-  const payload = buildDiscordPayload(userId, respostasArray, avatarUrl);
-
-  try {
-    const discordRes = await fetch(
-      `https://discord.com/api/v10/channels/${channelId}/messages`,
-      {
-        method: "POST",
-        headers: { Authorization: `Bot ${botToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }
-    );
-    if (!discordRes.ok) {
-      const errText = await discordRes.text();
-      console.error("Discord API error:", discordRes.status, errText);
-      return res.status(500).json({ success: false, error: `Discord API: ${discordRes.status}` });
+        })
+        .catch(() => {});
     }
-    return res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("Erro interno:", err);
-    return res.status(500).json({ success: false, error: err.message });
-  }
-};
+
+    const perguntas = [
+      "Conte mais sobre você?",
+      "Informe sua idade",
+      "Quais os dias que você geralmente tem disponibilidade?",
+      "Qual é sua disponibilidade?",
+      "Qual setor você deseja ingressar?",
+      "Tem alguma experiência nessa área?",
+      "Porque deseja entrar na equipe e qual o seu intuito com isso?"
+    ];
+
+    function getFormData() {
+      const formData = new FormData(form);
+
+      const disponibilidade = Array.from(form.querySelectorAll('input[name="disponibilidade"]:checked')).map(el => el.value);
+      const dias = Array.from(form.querySelectorAll('input[name="dias"]:checked')).map(el => el.value);
+      const setor = Array.from(form.querySelectorAll('input[name="setor"]:checked')).map(el => el.value);
+
+      function joinWithE(arr) {
+        if (arr.length === 0) return '';
+        if (arr.length === 1) return arr[0];
+        return arr.slice(0, -1).join(', ') + ' e ' + arr[arr.length - 1];
+      }
+
+      return {
+        userId: USER_ID,
+        username: USER_NAME,
+        avatarUrl: USER_AVATAR,
+        respostas: {
+          resposta1: formData.get('resposta1') || '',
+          resposta2: formData.get('idade') || '',
+          resposta3: joinWithE(dias),
+          resposta4: joinWithE(disponibilidade),
+          resposta5: joinWithE(setor),
+          resposta6: formData.get('resposta4') || '',
+          resposta7: formData.get('resposta5') || '',
+        }
+      };
+    }
+
+    function validateForm() {
+      if (!USER_ID) {
+        alert('Erro: ID de usuário não identificado. Acesse o formulário pelo botão no Discord.');
+        return false;
+      }
+      for (const input of form.querySelectorAll('textarea[required]')) {
+        if (!input.value.trim()) {
+          alert('Por favor, preencha todos os campos obrigatórios.');
+          input.focus();
+          return false;
+        }
+      }
+      const idadeInput = document.getElementById('idadeInput');
+      const idadeVal = parseInt(idadeInput.value, 10);
+      if (!idadeInput.value || isNaN(idadeVal)) {
+        alert('Por favor, informe sua idade.');
+        idadeInput.focus();
+        return false;
+      }
+      if (idadeVal < 15) {
+        idadeInput.classList.add('age-error');
+        document.getElementById('ageErrorMsg').classList.add('visible');
+        idadeInput.focus();
+        return false;
+      }
+      if (form.querySelectorAll('input[name="dias"]:checked').length === 0) {
+        alert('Por favor, selecione ao menos um dia de disponibilidade.');
+        return false;
+      }
+      if (form.querySelectorAll('input[name="disponibilidade"]:checked').length === 0) {
+        alert('Por favor, selecione ao menos uma disponibilidade.');
+        return false;
+      }
+      if (form.querySelectorAll('input[name="setor"]:checked').length === 0) {
+        alert('Por favor, selecione ao menos um setor.');
+        return false;
+      }
+      return true;
+    }
+
+    function showConfirmation() {
+      if (!validateForm()) return;
+      const data = getFormData();
+      let html = '';
+      Object.keys(data.respostas).forEach((key, index) => {
+        const val = data.respostas[key];
+        if (!val && index === 5) return; // pula experiência em branco
+        html += `<div class="preview-item">
+          <div class="preview-question">${perguntas[index]}</div>
+          <div class="preview-answer">${escapeHTML(val) || 'Não respondido'}</div>
+        </div>`;
+      });
+      previewContent.innerHTML = html;
+      confirmOverlay.classList.add('active');
+    }
+
+    function hideConfirmation() { confirmOverlay.classList.remove('active'); }
+
+    function escapeHTML(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function createParticles() {
+      const container = document.getElementById('successAnimation');
+      const colors = ['#FFE100','#ffd700','#ffffff','#1e1f22'];
+      for (let i = 0; i < 20; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.left = '50%'; p.style.top = '50%';
+        const angle = (i / 20) * 360;
+        const dist = 80 + Math.random() * 60;
+        p.style.setProperty('--tx', Math.cos(angle * Math.PI / 180) * dist + 'px');
+        p.style.setProperty('--ty', Math.sin(angle * Math.PI / 180) * dist + 'px');
+        container.appendChild(p);
+        setTimeout(() => p.remove(), 1000);
+      }
+    }
+
+    async function submitForm() {
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span class="loading-spinner"></span>Enviando...';
+      const data = getFormData();
+      try {
+        const response = await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+          confirmOverlay.classList.remove('active');
+          formModal.style.display = 'none';
+          successOverlay.classList.add('active');
+          setTimeout(createParticles, 300);
+          document.querySelector('.overlay').style.display = 'none';
+        } else {
+          throw new Error(result.error || 'Erro ao enviar formulário');
+        }
+      } catch (error) {
+        alert('Erro ao enviar formulário: ' + error.message);
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = 'Confirmar Envio';
+      }
+    }
+
+    // Validação ao vivo da idade
+    const idadeInput = document.getElementById('idadeInput');
+    idadeInput.addEventListener('input', () => {
+      idadeInput.value = idadeInput.value.replace(/[^0-9]/g, '');
+      const val = parseInt(idadeInput.value, 10);
+      const errorMsg = document.getElementById('ageErrorMsg');
+      if (idadeInput.value && !isNaN(val) && val < 15) {
+        idadeInput.classList.add('age-error');
+        errorMsg.classList.add('visible');
+      } else {
+        idadeInput.classList.remove('age-error');
+        errorMsg.classList.remove('visible');
+      }
+    });
+
+    function toggleTooltip(tooltipId) {
+      const tooltip = document.getElementById(tooltipId);
+      if (!tooltip) return;
+      setTimeout(() => {
+        const cb = tooltip.previousElementSibling?.querySelector('input[type="checkbox"]');
+        if (cb && cb.checked) tooltip.classList.add('visible');
+        else tooltip.classList.remove('visible');
+      }, 10);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && confirmOverlay.classList.contains('active')) hideConfirmation();
+    });
+  </script>
+</body>
+</html>
