@@ -1,6 +1,3 @@
-
-// api/submit.js — Vercel Serverless Function (CommonJS)
-
 const GUILD_ID = "594296025561169926";
 
 const EMOJIS = [
@@ -80,7 +77,7 @@ function buildDiscordPayload(userId, respostas, avatarUrl) {
   };
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -129,4 +126,4 @@ module.exports = async function handler(req, res) {
     console.error("Erro interno:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
-};
+}
