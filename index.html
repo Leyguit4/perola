@@ -47,7 +47,12 @@
       border-bottom: 1px solid #3f4147;
     }
 
-    .modal-icon { width: 32px; height: 32px; font-size: 24px; display: flex; align-items: center; }
+    .modal-icon {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-icon img { width: 32px; height: 32px; object-fit: contain; }
+
     .modal-title { font-size: 20px; font-weight: 600; color: #f2f3f5; }
 
     .modal-close {
@@ -93,6 +98,81 @@
     .form-input:focus { outline: none; box-shadow: 0 0 0 2px #FFE100; }
     .form-input::placeholder { color: #6d6f78; }
 
+    /* Campo de idade */
+    .age-input-wrap { position: relative; }
+    .age-input {
+      width: 100%;
+      background-color: #1e1f22; border: none; border-radius: 4px;
+      color: #f2f3f5; padding: 10px 12px; font-size: 14px;
+      font-family: inherit; transition: box-shadow 0.15s;
+      -moz-appearance: textfield;
+    }
+    .age-input::-webkit-outer-spin-button,
+    .age-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .age-input:focus { outline: none; box-shadow: 0 0 0 2px #FFE100; }
+    .age-input.age-error { box-shadow: 0 0 0 2px #ed4245; }
+    .age-error-msg {
+      display: none;
+      margin-top: 6px; font-size: 12px; font-weight: 600; color: #ed4245;
+      background-color: rgba(237,66,69,0.10);
+      border-left: 3px solid #ed4245;
+      border-radius: 3px; padding: 6px 10px;
+    }
+    .age-error-msg.visible { display: block; }
+
+    /* Checkboxes */
+    .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; background-color: #2b2d31;
+      border-radius: 4px; cursor: pointer;
+      transition: background-color 0.15s; user-select: none;
+    }
+    .checkbox-item:hover { background-color: #32353b; }
+    .checkbox-item input[type="checkbox"] { display: none; }
+    .checkbox-box {
+      width: 20px; height: 20px; border-radius: 4px;
+      border: 2px solid #4e5058; background-color: #1e1f22;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background-color 0.15s, border-color 0.15s;
+    }
+    .checkbox-item input[type="checkbox"]:checked + .checkbox-box {
+      background-color: #FFE100; border-color: #FFE100;
+    }
+    .checkbox-item input[type="checkbox"]:checked + .checkbox-box::after {
+      content: '';
+      display: block; width: 5px; height: 9px;
+      border: 2px solid #1e1f22;
+      border-top: none; border-left: none;
+      transform: rotate(45deg) translateY(-1px);
+    }
+    .checkbox-label-text { font-size: 14px; color: #dbdee1; }
+
+    /* Badge opcional */
+    .optional-badge {
+      display: inline-block; font-size: 10px; font-weight: 600;
+      background-color: #2b2d31; color: #6d6f78;
+      border: 1px solid #3f4147; border-radius: 3px;
+      padding: 1px 5px; margin-left: 6px;
+      text-transform: uppercase; letter-spacing: 0.03em; vertical-align: middle;
+    }
+    .optional-hint {
+      font-size: 11px; color: #6d6f78;
+      margin-top: 5px; margin-bottom: 8px; font-style: italic;
+    }
+
+    /* Tooltip de setor */
+    .sector-tooltip {
+      margin-top: 6px; margin-bottom: 4px;
+      padding: 8px 11px;
+      background-color: rgba(255,225,0,0.06);
+      border-left: 3px solid #FFE100;
+      border-radius: 3px; font-size: 12px; color: #9ea3ac;
+      line-height: 1.45; display: none;
+    }
+    .sector-tooltip.visible { display: block; }
+    .sector-tooltip strong { color: #FFE100; font-weight: 600; }
+
     .modal-footer {
       padding: 16px; background-color: #2b2d31;
       border-radius: 0 0 8px 8px;
@@ -119,6 +199,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* Overlay de confirmação */
     .confirm-overlay {
       display: none; position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -126,7 +207,6 @@
       align-items: center; justify-content: center;
     }
     .confirm-overlay.active { display: flex; }
-
     .confirm-modal {
       background-color: #313338; border-radius: 8px;
       width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto;
@@ -135,19 +215,18 @@
     .confirm-header { padding: 16px; border-bottom: 1px solid #3f4147; }
     .confirm-title { font-size: 18px; font-weight: 600; color: #f2f3f5; }
     .confirm-body { padding: 16px; max-height: 400px; overflow-y: auto; }
-
     .preview-item {
       margin-bottom: 16px; padding: 12px;
       background-color: #2b2d31; border-radius: 4px;
     }
     .preview-question { font-size: 12px; font-weight: 700; color: #FFE100; margin-bottom: 6px; }
     .preview-answer { font-size: 14px; color: #dbdee1; white-space: pre-wrap; }
-
     .confirm-footer {
       padding: 16px; background-color: #2b2d31;
       display: flex; justify-content: flex-end; gap: 12px;
     }
 
+    /* Tela de sucesso */
     .success-overlay {
       display: none; position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -161,62 +240,80 @@
       position: relative; width: 160px; height: 160px;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-
     .shadow-yellow {
       position: absolute; width: 120px; height: 120px; border-radius: 50%;
       background: radial-gradient(circle, #FFE500 0%, transparent 68%);
       filter: blur(28px); opacity: 0.50;
-      animation: orbit-y 20s cubic-bezier(0.45,0.05,0.55,0.95) infinite, pulse-y 18s ease-in-out infinite;
+      animation: orbit-y 20s cubic-bezier(0.45,0.05,0.55,0.95) infinite,
+                 pulse-y 18s ease-in-out infinite;
     }
     .shadow-black {
       position: absolute; width: 105px; height: 105px; border-radius: 50%;
       background: radial-gradient(circle, #000000 0%, transparent 68%);
       filter: blur(32px); opacity: 0.60;
-      animation: orbit-b 26s cubic-bezier(0.45,0.05,0.55,0.95) infinite, pulse-b 22s ease-in-out infinite;
+      animation: orbit-b 26s cubic-bezier(0.45,0.05,0.55,0.95) infinite,
+                 pulse-b 22s ease-in-out infinite;
     }
     .shadow-white {
       position: absolute; width: 90px; height: 90px; border-radius: 50%;
       background: radial-gradient(circle, #ffffff 0%, transparent 65%);
       filter: blur(22px); opacity: 0.22;
-      animation: orbit-w 23s cubic-bezier(0.45,0.05,0.55,0.95) infinite, pulse-w 19s ease-in-out infinite;
+      animation: orbit-w 23s cubic-bezier(0.45,0.05,0.55,0.95) infinite,
+                 pulse-w 19s ease-in-out infinite;
     }
 
     @keyframes orbit-y {
-      0%   { transform: translate(  0px,-30px) scale(1.00); opacity:.50; }
-      25%  { transform: translate( 30px,  0px) scale(1.08); opacity:.62; }
-      50%  { transform: translate(  0px, 30px) scale(0.96); opacity:.46; }
-      75%  { transform: translate(-30px,  0px) scale(0.97); opacity:.54; }
-      100% { transform: translate(  0px,-30px) scale(1.00); opacity:.50; }
+      0%   { transform: translate(  0px, -30px) scale(1.00); opacity: 0.50; }
+      12%  { transform: translate( 18px, -22px) scale(1.05); opacity: 0.58; }
+      25%  { transform: translate( 30px,   0px) scale(1.08); opacity: 0.62; }
+      37%  { transform: translate( 18px,  22px) scale(1.04); opacity: 0.55; }
+      50%  { transform: translate(  0px,  30px) scale(0.96); opacity: 0.46; }
+      62%  { transform: translate(-18px,  22px) scale(0.94); opacity: 0.50; }
+      75%  { transform: translate(-30px,   0px) scale(0.97); opacity: 0.54; }
+      87%  { transform: translate(-18px, -22px) scale(1.02); opacity: 0.57; }
+      100% { transform: translate(  0px, -30px) scale(1.00); opacity: 0.50; }
     }
     @keyframes orbit-b {
-      0%   { transform: translate( 28px, 12px) scale(1.00); opacity:.58; }
-      25%  { transform: translate(-10px, 30px) scale(0.93); opacity:.44; }
-      50%  { transform: translate(-28px,-14px) scale(1.02); opacity:.60; }
-      75%  { transform: translate( 10px,-30px) scale(1.04); opacity:.62; }
-      100% { transform: translate( 28px, 12px) scale(1.00); opacity:.58; }
+      0%   { transform: translate( 28px,  12px) scale(1.00); opacity: 0.58; }
+      12%  { transform: translate( 12px,  28px) scale(0.96); opacity: 0.50; }
+      25%  { transform: translate(-10px,  30px) scale(0.93); opacity: 0.44; }
+      37%  { transform: translate(-28px,  10px) scale(0.97); opacity: 0.52; }
+      50%  { transform: translate(-28px, -14px) scale(1.02); opacity: 0.60; }
+      62%  { transform: translate(-12px, -30px) scale(1.06); opacity: 0.65; }
+      75%  { transform: translate( 10px, -30px) scale(1.04); opacity: 0.62; }
+      87%  { transform: translate( 28px, -12px) scale(1.01); opacity: 0.58; }
+      100% { transform: translate( 28px,  12px) scale(1.00); opacity: 0.58; }
     }
     @keyframes orbit-w {
-      0%   { transform: translate(-24px,-16px) scale(1.00); opacity:.22; }
-      25%  { transform: translate(-16px, 26px) scale(1.10); opacity:.30; }
-      50%  { transform: translate( 24px, 16px) scale(0.97); opacity:.20; }
-      75%  { transform: translate( 16px,-28px) scale(0.96); opacity:.18; }
-      100% { transform: translate(-24px,-16px) scale(1.00); opacity:.22; }
+      0%   { transform: translate(-24px, -16px) scale(1.00); opacity: 0.22; }
+      12%  { transform: translate(-30px,   8px) scale(1.06); opacity: 0.28; }
+      25%  { transform: translate(-16px,  26px) scale(1.10); opacity: 0.30; }
+      37%  { transform: translate(  8px,  30px) scale(1.04); opacity: 0.26; }
+      50%  { transform: translate( 24px,  16px) scale(0.97); opacity: 0.20; }
+      62%  { transform: translate( 30px, -10px) scale(0.93); opacity: 0.16; }
+      75%  { transform: translate( 16px, -28px) scale(0.96); opacity: 0.18; }
+      87%  { transform: translate( -8px, -30px) scale(0.99); opacity: 0.21; }
+      100% { transform: translate(-24px, -16px) scale(1.00); opacity: 0.22; }
     }
-    @keyframes pulse-y { 0%,100%{filter:blur(28px);}50%{filter:blur(42px);} }
-    @keyframes pulse-b { 0%,100%{filter:blur(32px);}50%{filter:blur(50px);} }
-    @keyframes pulse-w { 0%,100%{filter:blur(22px);}50%{filter:blur(36px);} }
+    @keyframes pulse-y { 0%,100% { filter: blur(28px); } 50% { filter: blur(42px); } }
+    @keyframes pulse-b { 0%,100% { filter: blur(32px); } 50% { filter: blur(50px); } }
+    @keyframes pulse-w { 0%,100% { filter: blur(22px); } 50% { filter: blur(36px); } }
 
     .success-icon-wrap {
       position: relative; z-index: 2;
-      animation: icon-appear 0.6s ease 0.2s both, float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) infinite;
+      animation: icon-appear 0.6s ease 0.2s both,
+                 float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) infinite;
     }
-    @keyframes icon-appear { from{transform:scale(0);opacity:0;} to{transform:scale(1);opacity:1;} }
+    @keyframes icon-appear {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
     @keyframes float-circle {
-      0%  {transform:translate(0px,-6px) rotate(0deg);}
-      25% {transform:translate(6px,0px) rotate(0.6deg);}
-      50% {transform:translate(0px,6px) rotate(0deg);}
-      75% {transform:translate(-6px,0px) rotate(-0.6deg);}
-      100%{transform:translate(0px,-6px) rotate(0deg);}
+      0%   { transform: translate(  0px, -6px) rotate( 0.0deg); }
+      25%  { transform: translate(  6px,  0px) rotate( 0.6deg); }
+      50%  { transform: translate(  0px,  6px) rotate( 0.0deg); }
+      75%  { transform: translate( -6px,  0px) rotate(-0.6deg); }
+      100% { transform: translate(  0px, -6px) rotate( 0.0deg); }
     }
 
     .success-circle {
@@ -227,8 +324,9 @@
       animation: glow-breathe 14s ease-in-out infinite;
     }
     @keyframes glow-breathe {
-      0%,100%{box-shadow:0 0 14px 3px rgba(255,229,0,0.22),0 4px 20px rgba(0,0,0,0.50);}
-      50%{box-shadow:0 0 36px 12px rgba(255,229,0,0.52),0 8px 32px rgba(0,0,0,0.65);}
+      0%   { box-shadow: 0 0 14px  3px rgba(255,229,0,0.22), 0 4px 20px rgba(0,0,0,0.50); }
+      50%  { box-shadow: 0 0 36px 12px rgba(255,229,0,0.52), 0 8px 32px rgba(0,0,0,0.65); }
+      100% { box-shadow: 0 0 14px  3px rgba(255,229,0,0.22), 0 4px 20px rgba(0,0,0,0.50); }
     }
 
     .success-check-svg { width: 46px; height: 46px; }
@@ -236,101 +334,50 @@
       stroke: #1e1f22; stroke-width: 3.4;
       stroke-linecap: round; stroke-linejoin: round; fill: none;
       stroke-dasharray: 50; stroke-dashoffset: 50;
-      animation: draw-check 0.65s ease-out 0.4s forwards, check-pulse 14s ease-in-out 1.1s infinite;
+      animation: draw-check 0.65s ease-out 0.4s forwards,
+                 check-pulse 14s ease-in-out 1.1s infinite;
     }
-    @keyframes draw-check { to{stroke-dashoffset:0;} }
+    @keyframes draw-check { to { stroke-dashoffset: 0; } }
     @keyframes check-pulse {
-      0%,100%{stroke-width:3.4;opacity:1.00;}
-      50%{stroke-width:3.9;opacity:0.80;}
+      0%   { stroke-width: 3.4; opacity: 1.00; }
+      50%  { stroke-width: 3.9; opacity: 0.80; }
+      100% { stroke-width: 3.4; opacity: 1.00; }
     }
 
     .particle {
-      position: absolute; width: 10px; height: 10px; border-radius: 50%;
+      position: absolute; width: 10px; height: 10px;
+      border-radius: 50%;
       animation: particle-explode 1s ease-out forwards;
     }
     @keyframes particle-explode {
-      0%{transform:translate(0,0) scale(1);opacity:1;}
-      100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0;}
+      0%   { transform: translate(0,0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx),var(--ty)) scale(0); opacity: 0; }
     }
 
     .success-text {
       margin-top: 14px; font-size: 24px; font-weight: 600; color: #FFE100;
-      animation: text-appear 0.5s ease 0.5s both, float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) 0.5s infinite;
+      animation: text-appear 0.5s ease 0.5s both,
+                 float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) 0.5s infinite;
     }
     .success-subtext {
       margin-top: 10px; font-size: 14px; color: #b5bac1;
-      animation: text-appear 0.5s ease 0.7s both, float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) 0.7s infinite;
+      animation: text-appear 0.5s ease 0.7s both,
+                 float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) 0.7s infinite;
     }
     .success-close-hint {
       margin-top: 20px; font-size: 12px; color: #6d6f78;
-      animation: text-appear 0.5s ease 0.9s both, float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) 0.9s infinite;
+      animation: text-appear 0.5s ease 0.9s both,
+                 float-circle 14s cubic-bezier(0.45,0.05,0.55,0.95) 0.9s infinite;
     }
-    @keyframes text-appear { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+    @keyframes text-appear {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #2b2d31; border-radius: 4px; }
     ::-webkit-scrollbar-thumb { background: #1e1f22; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #3f4147; }
-
-    .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
-    .checkbox-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; background-color: #2b2d31;
-      border-radius: 4px; cursor: pointer;
-      transition: background-color 0.15s; user-select: none;
-    }
-    .checkbox-item:hover { background-color: #32353b; }
-    .checkbox-item input[type="checkbox"] { display: none; }
-    .checkbox-box {
-      width: 20px; height: 20px; border-radius: 4px;
-      border: 2px solid #4e5058; background-color: #1e1f22;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: background-color 0.15s, border-color 0.15s;
-    }
-    .checkbox-item input[type="checkbox"]:checked + .checkbox-box {
-      background-color: #FFE100; border-color: #FFE100;
-    }
-    .checkbox-item input[type="checkbox"]:checked + .checkbox-box::after {
-      content: ''; display: block;
-      width: 5px; height: 9px;
-      border: 2px solid #1e1f22; border-top: none; border-left: none;
-      transform: rotate(45deg) translateY(-1px);
-    }
-    .checkbox-label-text { font-size: 14px; color: #dbdee1; }
-
-    .optional-badge {
-      display: inline-block; font-size: 10px; font-weight: 600;
-      background-color: #2b2d31; color: #6d6f78;
-      border: 1px solid #3f4147; border-radius: 3px;
-      padding: 1px 5px; margin-left: 6px;
-      text-transform: uppercase; letter-spacing: 0.03em; vertical-align: middle;
-    }
-    .optional-hint { font-size: 11px; color: #6d6f78; margin-top: 5px; margin-bottom: 8px; font-style: italic; }
-
-    .age-input-wrap { position: relative; }
-    .age-input {
-      width: 100%; background-color: #1e1f22; border: none; border-radius: 4px;
-      color: #f2f3f5; padding: 10px 12px; font-size: 14px; font-family: inherit;
-      transition: box-shadow 0.15s; -moz-appearance: textfield;
-    }
-    .age-input::-webkit-outer-spin-button,
-    .age-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    .age-input:focus { outline: none; box-shadow: 0 0 0 2px #FFE100; }
-    .age-input.age-error { box-shadow: 0 0 0 2px #ed4245; }
-    .age-error-msg {
-      display: none; margin-top: 6px; font-size: 12px; font-weight: 600;
-      color: #ed4245; background-color: rgba(237,66,69,0.10);
-      border-left: 3px solid #ed4245; border-radius: 3px; padding: 6px 10px;
-    }
-    .age-error-msg.visible { display: block; }
-
-    .sector-tooltip {
-      margin-top: 6px; margin-bottom: 4px; padding: 8px 11px;
-      background-color: rgba(255,225,0,0.06); border-left: 3px solid #FFE100;
-      border-radius: 3px; font-size: 12px; color: #9ea3ac; line-height: 1.45; display: none;
-    }
-    .sector-tooltip.visible { display: block; }
-    .sector-tooltip strong { color: #FFE100; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -338,7 +385,7 @@
 
   <div class="modal-container" id="formModal">
     <div class="modal-header">
-      <div class="modal-icon"><img src="/Perola.png" alt="Pérola" style="width:32px;height:32px;object-fit:contain;"></div>
+      <div class="modal-icon"><img src="/Perola.png" alt="Pérola"></div>
       <h1 class="modal-title">Formulário de Mídia</h1>
       <button class="modal-close" onclick="window.close()" title="Fechar">&times;</button>
     </div>
@@ -353,23 +400,34 @@
 
     <form id="midiaForm" class="modal-body">
 
+      <!-- Pergunta 1 -->
       <div class="form-group">
         <label class="form-label">Conte mais sobre você? <span class="required">*</span></label>
         <textarea class="form-input" name="resposta1" placeholder="Sua resposta..." required></textarea>
       </div>
 
+      <!-- Pergunta 2: Idade -->
       <div class="form-group">
         <label class="form-label" for="idadeInput">Informe sua idade <span class="required">*</span></label>
         <div class="age-input-wrap">
-          <input type="number" id="idadeInput" name="idade" class="age-input"
-            placeholder="Ex: 20" min="1" max="99" inputmode="numeric">
+          <input
+            type="number"
+            id="idadeInput"
+            name="idade"
+            class="age-input"
+            placeholder="Ex: 20"
+            min="1"
+            max="99"
+            inputmode="numeric"
+          >
           <div class="age-error-msg" id="ageErrorMsg">⚠️ Você precisa ter pelo menos 15 anos para se candidatar.</div>
         </div>
       </div>
 
+      <!-- Pergunta 3: Dias de disponibilidade -->
       <div class="form-group">
         <label class="form-label">Quais os dias que você geralmente tem disponibilidade? <span class="required">*</span></label>
-        <div class="checkbox-group">
+        <div class="checkbox-group" id="diasGroup">
           <label class="checkbox-item">
             <input type="checkbox" name="dias" value="Dia de Semana">
             <span class="checkbox-box"></span>
@@ -383,9 +441,10 @@
         </div>
       </div>
 
+      <!-- Pergunta 4: Disponibilidade -->
       <div class="form-group">
         <label class="form-label">Qual é sua disponibilidade? <span class="required">*</span></label>
-        <div class="checkbox-group">
+        <div class="checkbox-group" id="disponibilidadeGroup">
           <label class="checkbox-item">
             <input type="checkbox" name="disponibilidade" value="Manhã">
             <span class="checkbox-box"></span>
@@ -404,9 +463,10 @@
         </div>
       </div>
 
+      <!-- Pergunta 5: Setor -->
       <div class="form-group">
         <label class="form-label">Qual setor você deseja ingressar? <span class="required">*</span></label>
-        <div class="checkbox-group">
+        <div class="checkbox-group" id="setorGroup">
           <label class="checkbox-item" onclick="toggleTooltip('tooltipDesign')">
             <input type="checkbox" name="setor" value="Design">
             <span class="checkbox-box"></span>
@@ -434,6 +494,7 @@
         </div>
       </div>
 
+      <!-- Pergunta 6: Experiência (opcional) -->
       <div class="form-group">
         <label class="form-label">
           Tem alguma experiência nessa área? Conte-nos!
@@ -443,6 +504,7 @@
         <textarea class="form-input" name="resposta4" placeholder="Descreva sua experiência, se houver..."></textarea>
       </div>
 
+      <!-- Pergunta 7: Porque deseja entrar -->
       <div class="form-group">
         <label class="form-label">Porque deseja entrar na equipe e qual o seu intuito com isso? <span class="required">*</span></label>
         <textarea class="form-input" name="resposta5" placeholder="Sua resposta..." required></textarea>
@@ -460,7 +522,10 @@
   <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-modal">
       <div class="confirm-header">
-        <h2 class="confirm-title"><img src="/Form.png" alt="" style="width:22px;height:22px;vertical-align:middle;margin-right:8px;object-fit:contain;">Confirmar Envio</h2>
+        <h2 class="confirm-title">
+          <img src="/Form.png" alt="" style="width:22px;height:22px;vertical-align:middle;margin-right:8px;object-fit:contain;">
+          Confirmar Envio
+        </h2>
       </div>
       <div class="confirm-body" id="previewContent"></div>
       <div class="confirm-footer">
@@ -499,13 +564,15 @@
 
     // Pega o userId do path: /perola/form/midia/123456789
     const pathParts = window.location.pathname.split('/');
-    const USER_ID = pathParts[pathParts.length - 1].match(/^\d+$/)
-      ? pathParts[pathParts.length - 1]
+    const lastPart = pathParts[pathParts.length - 1];
+    const USER_ID = /^\d+$/.test(lastPart)
+      ? lastPart
       : (new URLSearchParams(window.location.search).get('uid') || '');
 
     let USER_AVATAR = null;
     let USER_NAME = USER_ID;
 
+    // Buscar avatar/username via Vercel API Function
     if (USER_ID) {
       fetch('/api/user/' + USER_ID)
         .then(r => r.json())
@@ -518,21 +585,23 @@
         .catch(() => {});
     }
 
+    // IMPORTANTE: mesma ordem exata do array PERGUNTAS[] no midiaforms.js
+    // para que o container no Discord fique idêntico
     const perguntas = [
       "Conte mais sobre você?",
-      "Informe sua idade",
-      "Quais os dias que você geralmente tem disponibilidade?",
-      "Qual é sua disponibilidade?",
-      "Qual setor você deseja ingressar?",
-      "Tem alguma experiência nessa área?",
-      "Porque deseja entrar na equipe e qual o seu intuito com isso?"
+      "Sua idade?",
+      "Dias que geralmente tem disponibilidade?",
+      "Qual é a sua disponibilidade?",
+      "Qual setor deseja ingressar?",
+      "Tem alguma experiência nessa(s) área?",
+      "Porque deseja entrar na equipe e qual o intuito com isso?"
     ];
 
     function getFormData() {
       const formData = new FormData(form);
 
-      const disponibilidade = Array.from(form.querySelectorAll('input[name="disponibilidade"]:checked')).map(el => el.value);
       const dias = Array.from(form.querySelectorAll('input[name="dias"]:checked')).map(el => el.value);
+      const disponibilidade = Array.from(form.querySelectorAll('input[name="disponibilidade"]:checked')).map(el => el.value);
       const setor = Array.from(form.querySelectorAll('input[name="setor"]:checked')).map(el => el.value);
 
       function joinWithE(arr) {
@@ -546,13 +615,13 @@
         username: USER_NAME,
         avatarUrl: USER_AVATAR,
         respostas: {
-          resposta1: formData.get('resposta1') || '',
-          resposta2: formData.get('idade') || '',
-          resposta3: joinWithE(dias),
-          resposta4: joinWithE(disponibilidade),
-          resposta5: joinWithE(setor),
-          resposta6: formData.get('resposta4') || '',
-          resposta7: formData.get('resposta5') || '',
+          resposta1: formData.get('resposta1') || '',   // índice 0 → "Conte mais sobre você?"
+          resposta2: formData.get('idade') || '',        // índice 1 → "Sua idade?"
+          resposta3: joinWithE(dias),                    // índice 2 → "Dias que geralmente tem disponibilidade?"
+          resposta4: joinWithE(disponibilidade),         // índice 3 → "Qual é a sua disponibilidade?"
+          resposta5: joinWithE(setor),                   // índice 4 → "Qual setor deseja ingressar?"
+          resposta6: formData.get('resposta4') || '',    // índice 5 → "Tem alguma experiência nessa(s) área?"
+          resposta7: formData.get('resposta5') || '',    // índice 6 → "Porque deseja entrar na equipe..."
         }
       };
     }
@@ -603,7 +672,8 @@
       let html = '';
       Object.keys(data.respostas).forEach((key, index) => {
         const val = data.respostas[key];
-        if (!val && index === 5) return; // pula experiência em branco
+        // Pula experiência (índice 5) se em branco — espelha o createResponseContainer do midiaforms.js
+        if (index === 5 && (!val || val.trim() === '')) return;
         html += `<div class="preview-item">
           <div class="preview-question">${perguntas[index]}</div>
           <div class="preview-answer">${escapeHTML(val) || 'Não respondido'}</div>
@@ -613,7 +683,9 @@
       confirmOverlay.classList.add('active');
     }
 
-    function hideConfirmation() { confirmOverlay.classList.remove('active'); }
+    function hideConfirmation() {
+      confirmOverlay.classList.remove('active');
+    }
 
     function escapeHTML(text) {
       const div = document.createElement('div');
@@ -623,12 +695,13 @@
 
     function createParticles() {
       const container = document.getElementById('successAnimation');
-      const colors = ['#FFE100','#ffd700','#ffffff','#1e1f22'];
+      const colors = ['#FFE100', '#ffd700', '#ffffff', '#1e1f22'];
       for (let i = 0; i < 20; i++) {
         const p = document.createElement('div');
         p.className = 'particle';
         p.style.background = colors[Math.floor(Math.random() * colors.length)];
-        p.style.left = '50%'; p.style.top = '50%';
+        p.style.left = '50%';
+        p.style.top = '50%';
         const angle = (i / 20) * 360;
         const dist = 80 + Math.random() * 60;
         p.style.setProperty('--tx', Math.cos(angle * Math.PI / 180) * dist + 'px');
@@ -643,6 +716,7 @@
       confirmBtn.innerHTML = '<span class="loading-spinner"></span>Enviando...';
       const data = getFormData();
       try {
+        // Chama a Vercel API Function (api/submit.js) — NÃO o bot diretamente
         const response = await fetch('/api/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -667,31 +741,38 @@
 
     // Validação ao vivo da idade
     const idadeInput = document.getElementById('idadeInput');
+    const ageErrorMsg = document.getElementById('ageErrorMsg');
     idadeInput.addEventListener('input', () => {
       idadeInput.value = idadeInput.value.replace(/[^0-9]/g, '');
       const val = parseInt(idadeInput.value, 10);
-      const errorMsg = document.getElementById('ageErrorMsg');
       if (idadeInput.value && !isNaN(val) && val < 15) {
         idadeInput.classList.add('age-error');
-        errorMsg.classList.add('visible');
+        ageErrorMsg.classList.add('visible');
       } else {
         idadeInput.classList.remove('age-error');
-        errorMsg.classList.remove('visible');
+        ageErrorMsg.classList.remove('visible');
       }
     });
 
+    // Tooltip dos setores — lógica idêntica ao startmidiaforms.js
     function toggleTooltip(tooltipId) {
       const tooltip = document.getElementById(tooltipId);
       if (!tooltip) return;
       setTimeout(() => {
-        const cb = tooltip.previousElementSibling?.querySelector('input[type="checkbox"]');
-        if (cb && cb.checked) tooltip.classList.add('visible');
-        else tooltip.classList.remove('visible');
+        const prevItem = tooltip.previousElementSibling;
+        const cb = prevItem ? prevItem.querySelector('input[type="checkbox"]') : null;
+        if (cb && cb.checked) {
+          tooltip.classList.add('visible');
+        } else {
+          tooltip.classList.remove('visible');
+        }
       }, 10);
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && confirmOverlay.classList.contains('active')) hideConfirmation();
+      if (e.key === 'Escape' && confirmOverlay.classList.contains('active')) {
+        hideConfirmation();
+      }
     });
   </script>
 </body>
