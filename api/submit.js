@@ -5,7 +5,7 @@ const EMOJIS = [
   "<:userdigit:1499280432359932036>",   // 0 - Conte mais sobre você?
   "<:info:1287136395470704692>",          // 1 - Sua idade?
   "<:calendar:1253453437295788163>",      // 2 - Dias que geralmente tem disponibilidade?
-  "<:cloudyday:1499275411853545493>",     // 3 - Qual é a sua disponibilidade?
+  "<:tempo:1499280165241491517>",     // 3 - Qual é a sua disponibilidade?
   "<:thumbtack:1253523157227147329>",     // 4 - Qual setor deseja ingressar?
   "<:starr:1499279899561689108>",   // 5 - Tem alguma experiência nessa(s) área?
   "<:Question:1337301791150313484>",      // 6 - Porque deseja entrar na equipe...
