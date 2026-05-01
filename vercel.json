@@ -1,17 +1,5 @@
 {
-  "functions": {
-    "api/submit.js": {
-      "memory": 128,
-      "maxDuration": 10
-    },
-    "api/user/[userId].js": {
-      "memory": 128,
-      "maxDuration": 10
-    }
-  },
   "rewrites": [
-    { "source": "/api/submit", "destination": "/api/submit.js" },
-    { "source": "/api/user/:userId", "destination": "/api/user/[userId].js" },
     { "source": "/perola/form/midia/:userId", "destination": "/index.html" },
     { "source": "/perola/form/midia", "destination": "/index.html" },
     { "source": "/perola/form", "destination": "/index.html" },
