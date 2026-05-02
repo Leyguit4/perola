@@ -32,10 +32,12 @@
       z-index: 2;
       background-color: #313338;
       border-radius: 8px;
-      width: 100%;
-      max-width: 480px;
+      width: fit-content;
+      min-width: 480px;
+      max-width: 95vw;
       max-height: 90vh;
       overflow-y: auto;
+      overflow-x: visible;
       box-shadow: 0 0 0 1px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.24);
     }
 
@@ -70,7 +72,7 @@
       background-color: rgba(255,225,0,0.08);
       border-left: 4px solid #FFE100;
       border-radius: 4px;
-      display: flex; align-items: flex-start; gap: 10px;
+      display: flex; align-items: center; gap: 10px;
     }
     .alert-icon { color: #FFE100; font-size: 18px; flex-shrink: 0; }
     .alert-text { font-size: 13px; color: #b5bac1; line-height: 1.4; }
@@ -147,6 +149,37 @@
       transform: rotate(45deg) translateY(-1px);
     }
     .checkbox-label-text { font-size: 14px; color: #dbdee1; }
+
+    /* Badge "múltipla seleção" */
+    .form-label-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .form-label-row .form-label {
+      margin-bottom: 0;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .multi-hint {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 500;
+      font-style: normal;
+      text-transform: none;
+      letter-spacing: 0;
+      color: #b5bac1;
+      background-color: rgba(255, 225, 0, 0.06);
+      border-left: 3px solid #FFE100;
+      border-radius: 3px;
+      padding: 3px 8px;
+      white-space: nowrap;
+      line-height: 1.4;
+    }
 
     /* Badge opcional */
     .optional-badge {
@@ -393,7 +426,7 @@
     <div class="alert-box">
       <span class="alert-icon">⚠️</span>
       <p class="alert-text">
-        Este formulário será enviado para a <span class="alert-highlight">Equipe de Mídia</span>.
+        Este formulário será enviado para a <a href="https://ptb.discord.com/channels/594296025561169926/1040285975592570980" target="_blank" class="alert-highlight" style="text-decoration:none;cursor:pointer;">Equipe de Mídia</a>.
         Não compartilhe sua senha ou outras informações confidenciais.
       </p>
     </div>
@@ -426,7 +459,10 @@
 
       <!-- Pergunta 3: Dias de disponibilidade -->
       <div class="form-group">
-        <label class="form-label">Quais os dias que você geralmente tem disponibilidade? <span class="required">*</span></label>
+        <div class="form-label-row">
+          <label class="form-label" style="margin-bottom:0">Quais os dias que você geralmente tem disponibilidade? <span class="required">*</span></label>
+          <span class="multi-hint">É possível selecionar mais de uma opção.</span>
+        </div>
         <div class="checkbox-group" id="diasGroup">
           <label class="checkbox-item">
             <input type="checkbox" name="dias" value="Dia de Semana">
@@ -443,7 +479,10 @@
 
       <!-- Pergunta 4: Disponibilidade -->
       <div class="form-group">
-        <label class="form-label">Qual é sua disponibilidade? <span class="required">*</span></label>
+        <div class="form-label-row">
+          <label class="form-label" style="margin-bottom:0">Qual é sua disponibilidade? <span class="required">*</span></label>
+          <span class="multi-hint">É possível selecionar mais de uma opção.</span>
+        </div>
         <div class="checkbox-group" id="disponibilidadeGroup">
           <label class="checkbox-item">
             <input type="checkbox" name="disponibilidade" value="Manhã">
@@ -465,7 +504,10 @@
 
       <!-- Pergunta 5: Setor -->
       <div class="form-group">
-        <label class="form-label">Qual setor você deseja ingressar? <span class="required">*</span></label>
+        <div class="form-label-row">
+          <label class="form-label" style="margin-bottom:0">Qual setor você deseja ingressar? <span class="required">*</span></label>
+          <span class="multi-hint">É possível selecionar mais de uma opção.</span>
+        </div>
         <div class="checkbox-group" id="setorGroup">
           <label class="checkbox-item" onclick="toggleTooltip('tooltipDesign')">
             <input type="checkbox" name="setor" value="Design">
